@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write      # needed to push the report to the gh-pages branch
+  contents: write
 
 jobs:
   test:
@@ -17,9 +17,13 @@ jobs:
     timeout-minutes: 30
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: astral-sh/setup-uv@v7
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
 
       - name: Install dependencies
         run: uv sync --group dev
@@ -28,7 +32,6 @@ jobs:
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         run: uv run pytest tests/ -v --tb=short -m "not slow"
-        # allure results are written by addopts in pyproject.toml
 
       - name: Upload Allure results
         if: always()
@@ -36,12 +39,13 @@ jobs:
         with:
           name: allure-results
           path: allure-results/
+          if-no-files-found: ignore
           retention-days: 14
 
       - name: Get previous Allure history
         if: always()
+        continue-on-error: true
         uses: actions/checkout@v4
-        continue-on-error: true            # the gh-pages branch doesn't exist on the first run
         with:
           ref: gh-pages
           path: gh-pages
@@ -55,10 +59,15 @@ jobs:
           allure_history: allure-history
           keep_reports: 20
 
-      - name: Publish Allure report to GitHub Pages
+      - name: Ensure publish directory exists
         if: always() && github.ref == 'refs/heads/main'
+        run: mkdir -p allure-history
+
+      - name: Publish Allure report to GitHub Pages
+        if: always() && github.ref == 'refs/heads/main' && hashFiles('allure-history/**') != ''
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
           publish_dir: allure-history
+          force_orphan: true
