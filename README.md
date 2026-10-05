@@ -482,59 +482,6 @@ Expensive or repeated tests should be controlled through pytest markers and CI c
 
 ---
 
-## 🎯 Current Limitations
-
-This project intentionally focuses on LLM API testing rather than complete AI application testing.
-
-Current limitations include:
-
-* No RAG evaluation
-* No vector database testing
-* No agent/tool-use testing
-* No LLM-as-a-judge evaluation
-* No semantic similarity evaluation
-* Limited automated quality scoring
-* No production AI observability
-* Provider-specific configuration
-
-These capabilities are planned for subsequent AI Quality Engineering projects.
-
----
-
-## 🔮 Future Evolution
-
-This project is the foundation for a broader AI Quality Engineering portfolio.
-
-Planned areas include:
-
-```text
-Project 1
-AI API Testing
-      ↓
-Project 2
-RAG Testing + Ragas Evaluation
-      ↓
-Project 3
-LLM Evaluation Framework
-      ↓
-Project 4
-Agent Testing
-      ↓
-Project 5
-AI Security Testing
-      ↓
-Project 6
-AI + Playwright
-      ↓
-Project 7
-AI Quality CI/CD
-      ↓
-Project 8
-AI Quality Observability
-```
-
----
-
 ## 📚 Key Learning Outcomes
 
 Through this project, I developed practical understanding of:
@@ -553,26 +500,3 @@ Through this project, I developed practical understanding of:
 * Pytest framework design
 * CI/CD integration for AI tests
 
----
-
-## 💡 Key Engineering Insight
-
-Traditional API automation asks:
-
-> **"Did the API return the expected response?"**
-
-AI Quality Engineering additionally asks:
-
-> **"Did the AI system behave correctly, safely, reliably, and consistently within an acceptable quality boundary?"**
-
-This project is an exploration of that transition.
-
----
-
-## 📌 Project Status
-
-**Status: Completed — Project 1 of AI Quality Engineering Portfolio**
-
-Next:
-
-> **Project 2 — RAG Application + Automated RAG Evaluation using Ragas**
