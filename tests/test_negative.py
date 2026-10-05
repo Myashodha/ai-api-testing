@@ -1,5 +1,3 @@
-from IPython.core import doctb
-from IPython.core import doctb
 from http import client
 import re,base64,pytest
 from ai_api_testing.config import settings
