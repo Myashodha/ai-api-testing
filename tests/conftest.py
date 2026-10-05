@@ -28,7 +28,10 @@ def chat(client):
             "max_tokens":max_tokens,
             "temperature" : temperature
         }) 
-        return ChatCompletion.model_validate(response.json()).choices[0].message.content   
+        if response.status_code == 429:
+            pytest.skip("rate limited (429): inconclusive")
+        else:    
+            return ChatCompletion.model_validate(response.json()).choices[0].message.content     
     return _chat    
 
 @pytest.fixture(scope='session')
