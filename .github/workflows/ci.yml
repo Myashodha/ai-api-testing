@@ -45,16 +45,50 @@ jobs:
       - name: Install Allure CLI
         if: always()
         run: |
-          curl -Ls https://github.com/allure-framework/allure2/releases/download/2.33.0/allure-commandline-2.33.0.tgz -o allure.tgz
-          mkdir -p /tmp/allure
-          tar -xzf allure.tgz -C /tmp/allure --strip-components=1
-          echo "/tmp/allure/bin" >> $GITHUB_PATH
+          set -e
+          ALLURE_VERSION="2.33.0"
+          ALLURE_URL="https://github.com/allure-framework/allure2/releases/download/${ALLURE_VERSION}/allure-${ALLURE_VERSION}.tgz"
+
+          echo "Downloading Allure from: ${ALLURE_URL}"
+          mkdir -p /tmp/allure-download
+          cd /tmp/allure-download
+
+          for attempt in 1 2 3; do
+            if curl -L -f -o allure.tgz "${ALLURE_URL}"; then
+              echo "Download successful on attempt ${attempt}"
+              break
+            else
+              echo "Download failed on attempt ${attempt}, retrying..."
+              sleep 5
+            fi
+          done
+
+          if file allure.tgz | grep -q "gzip"; then
+            echo "File is a valid gzip archive"
+          else
+            echo "ERROR: Downloaded file is not a valid gzip archive"
+            file allure.tgz || true
+            head -c 100 allure.tgz | od -c || true
+            exit 1
+          fi
+
+          tar -xzf allure.tgz
+          echo "/tmp/allure-download/allure-${ALLURE_VERSION}/bin" >> $GITHUB_PATH
+          allure --version
 
       - name: Generate Allure HTML report
         if: always()
         run: |
-          mkdir -p allure-report
-          allure generate allure-results --clean -o allure-report
+          if [ -d "allure-results" ] && [ "$(ls -A allure-results)" ]; then
+            echo "Generating Allure report from results..."
+            mkdir -p allure-report
+            allure generate allure-results --clean -o allure-report
+            echo "Report generated successfully"
+          else
+            echo "No allure-results found, skipping report generation"
+            mkdir -p allure-report
+            echo "<html><body><h1>No test results available</h1></body></html>" > allure-report/index.html
+          fi
 
       - name: Publish report to GitHub Pages
         if: always() && github.ref == 'refs/heads/main'
@@ -74,7 +108,13 @@ jobs:
           fi
 
           rm -rf /tmp/gh-pages/*
-          cp -R allure-report/* /tmp/gh-pages/
+
+          if [ -d "allure-report" ] && [ "$(ls -A allure-report)" ]; then
+            cp -R allure-report/* /tmp/gh-pages/
+          else
+            echo "No allure-report found"
+            exit 1
+          fi
 
           git -C /tmp/gh-pages add .
           git -C /tmp/gh-pages commit -m "Deploy Allure report" || true
